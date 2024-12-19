@@ -15,13 +15,12 @@ The client is not allowed to call the injector code; it is the injector that con
 
 As an analogy, a service is an electric, gas, hybrid, or diesel car. The client is a driver who uses the car the same way regardless of the engine. An interface ensures the driver doesn't have to understand engine details like gears. An injector is the parent who bought the kid the car and decided which kind
 
-Without dependency injection[edit]
-In the following Java example, the Client class contains a Service member variable 
-that is initialized by the Client constructor. The client controls which 
-implementation of service is used and controls its construction. In this situation, 
+#
+### Without dependency injection
+In the following Java example, the Client class contains a Service member variable that is initialized by the Client constructor. The client controls which implementation of service is used and controls its construction. In this situation, 
 the client is said to have a hard-coded dependency on ExampleService.
 
-// An example without dependency injection
+```
 public class Client {
     // Internal reference to the service used by this client
     private ExampleService service;
@@ -37,28 +36,29 @@ public class Client {
         return "Hello " + service.getName();
     }
 }
-Constructor injection[edit]
-This method requires the client to provide a parameter in a constructor for the 
-dependency.
+```
 
+### Constructor injection
+This method requires the client to provide a parameter in a constructor for the dependency.
+```
 // Constructor
 Client(Service service) {
     // Save the reference to the passed-in service inside this client
     this.service = service;
 }
-Setter injection[edit]
+```
+### Setter injection
 This method requires the client to provide a setter method for the dependency.
-
+```
 // Setter method
 public void setService(Service service) {
     // Save the reference to the passed-in service inside this client.
     this.service = service;
 }
-Interface injection[edit]
-This is simply the client publishing a role interface to the setter methods of the
- client's dependencies. It can be used to establish how the injector should talk to
-  the client when injecting dependencies.
-
+```
+### Interface injection
+This is simply the client publishing a role interface to the setter methods of the client's dependencies. It can be used to establish how the injector should talk to the client when injecting dependencies.
+```
 // Service setter interface.
 public interface ServiceSetter {
     public void setService(Service service);
@@ -75,9 +75,10 @@ public class Client implements ServiceSetter {
         this.service = service;
     }
 }
- https://en.wikipedia.org/wiki/Dependency_injection 
+```
 
-Dagger
+#
+## Dagger
 Dagger is a fully static, compile-time dependency injection framework for both Java and Android. It is an adaptation of an earlier version created by Square and now maintained by Google.
 Dagger aims to address many of the development and performance issues that have plagued reflection-based solutions.
 
