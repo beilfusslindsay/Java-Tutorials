@@ -20,7 +20,7 @@ As an analogy, a service is an electric, gas, hybrid, or diesel car. The client 
 In the following Java example, the Client class contains a Service member variable that is initialized by the Client constructor. The client controls which implementation of service is used and controls its construction. In this situation, 
 the client is said to have a hard-coded dependency on ExampleService.
 
-```
+```java
 public class Client {
     // Internal reference to the service used by this client
     private ExampleService service;
@@ -40,7 +40,7 @@ public class Client {
 
 ### Constructor injection
 This method requires the client to provide a parameter in a constructor for the dependency.
-```
+```java
 // Constructor
 Client(Service service) {
     // Save the reference to the passed-in service inside this client
@@ -49,7 +49,7 @@ Client(Service service) {
 ```
 ### Setter injection
 This method requires the client to provide a setter method for the dependency.
-```
+```java
 // Setter method
 public void setService(Service service) {
     // Save the reference to the passed-in service inside this client.
@@ -58,7 +58,7 @@ public void setService(Service service) {
 ```
 ### Interface injection
 This is simply the client publishing a role interface to the setter methods of the client's dependencies. It can be used to establish how the injector should talk to the client when injecting dependencies.
-```
+```java
 // Service setter interface.
 public interface ServiceSetter {
     public void setService(Service service);
