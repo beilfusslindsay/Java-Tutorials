@@ -1,28 +1,24 @@
 # Adding a Global Secondary Index (GSI) to [DynamoDB](https://aws.amazon.com/dynamodb/?nc2=h_ql_prod_db_ddb) Using [Java](https://dev.java/) and [Dagger](https://dagger.io/)
 
+This tutorial will guide you through adding a Global Secondary Index (GSI) to a DynamoDB table using Java and Dagger for dependency injection. We will automate the creation of a table and GSI without using static methods, hardcoded variables, or a traditional main method. We will also cover how to achieve the same setup manually using the AWS Management Console for a visual understanding of the process. Finally, we will discuss hot partitions, their implications on performance, and how to manage them effectively.
 <br>
-This tutorial will guide you through adding a Global Secondary Index (GSI) to a DynamoDB table using Java and Dagger for dependency injection. We will automate the creation of a table and GSI without using static methods, hardcoded variables, or a traditional main method. We will touch on hot partitions, their implications on performance, and how to manage them effectively. Finally, we will also cover how to achieve the same setup manually using the AWS Console for a visual understanding of the process.
 
-<br>
 By the end of this guide, you will have a scalable and clean implementation for managing DynamoDB GSIs programmatically.
-
 
 
 ## Why Use a Global Secondary Index?
 <br>
 
-A Global Secondary Index (GSI) allows querying a DynamoDB table on a different attribute than the table’s primary key. This is particularly useful when your access patterns require efficient lookups on non-primary key attributes. For example:
+A [GSI](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.html) allows querying a DynamoDB table on a different attribute than the table’s primary key. This is particularly useful when your access patterns require efficient lookups on non-primary key attributes. For example:
+
 - Your DynamoDB table has a primary key of userId
 - You need to query users based on their email
 
 <br>
 A GSI can be created with email as the partition key, enabling efficient lookups by email without scanning the entire table.
-
 <br>
 
-**Table vs GSI**
-
-<br>
+### Table vs GSI
 
 | Base Table       | Partition Key | Attributes             | 
 |---------|----------------|--------------------------------|
@@ -41,7 +37,7 @@ A GSI can be created with email as the partition key, enabling efficient lookups
 - Dagger 2
 - An AWS account with permissions for DynamoDB
 
->Ensure you have a basic understanding of Java and DynamoDB concepts before proceeding.
+> Ensure you have a basic understanding of Java and DynamoDB concepts before proceeding.
 
 
 
@@ -72,20 +68,23 @@ To understand the structure, let’s manually create a table and GSI in the AWS 
 
 
 
-**[AWS Management Console](https://console.aws.amazon.com/dynamodb/home) GSI Setup**
+### [AWS Management Console](https://console.aws.amazon.com/dynamodb/home) GSI Setup
 | Step                    | Details                         | 
 |-------------------------|---------------------------------|
 | Define Table Schema  | Partition Key: userId              | 
 | Create GSI Index Name:  | EmailIndex, Partition Key: email| 
 | Projection | Type: ALL (include all attributes)           | 
 
+
 ## Step 2: Automating Table and GSI Creation
 
-Let’s automate the setup using Java and Dagger.
+Now we can automate the setup using Java and Dagger.
 
 ### Dynamic Configuration
 
-Start by creating a application.yml configuration file to define the table and GSI properties dynamically. This allows us to avoid hardcoded values and ensures flexibility across environments.
+Start by creating a application.yml configuration file to define the table and GSI properties dynamically. This allows us to avoid hardcoded values and ensures flexibility across environments. If you want to dive deeper into the table resource creation using AWS CloudFormation, see [AWS::DynamoDB::Table](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-dynamodb-table.html).
+
+To declare the ```AWS::DynamoDB::Table``` resource in your AWS CloudFormation template, use the following YAML syntax:
 
 ```java
 dynamodb:
@@ -171,214 +170,112 @@ public class DynamoDbTableService {
 ```
 
 
-**Execution Flow for Table Creation**
-```application.yml (dynamic configuration) > DynamoDBTableConfig (maps config to Java) > DynamoDBTableService (creates table) > Table (created in AWS)```
+### Execution Flow for Table Creation
+
+```mermaid
+flowchart TD
+    A[application.yml]-->B[DynamoDBTableConfig];
+    B-->C[DynamoDBTableService];
+    C-->D[Table];
+```
+>application.yml (dynamic configuration), DynamoDBTableConfig (maps config to Java), DynamoDBTableService (creates table), Table (created in AWS)
+<br>
 
 
-
-
-Step 5: Automating GSI Creation
-
-
+### Step 5: Automating GSI Creation
 
 Next, create a service to automate the creation of the GSI:
 
 
-
+```java
 @Service
-
 public class DynamoDbGsiService {
-
     private final DynamoDbClient dynamoDbClient;
-
     private final DynamoDbTableConfig config;
 
-
-
     public DynamoDbGsiService(DynamoDbClient dynamoDbClient, DynamoDbTableConfig config) {
-
         this.dynamoDbClient = dynamoDbClient;
-
         this.config = config;
-
     }
-
-
 
     public void createGsi() {
-
         GlobalSecondaryIndexUpdate gsiUpdate = GlobalSecondaryIndexUpdate.builder()
-
                 .create(CreateGlobalSecondaryIndexAction.builder()
-
                         .indexName(config.getGsi().getName())
-
                         .keySchema(KeySchemaElement.builder()
-
                                 .attributeName(config.getGsi().getPartitionKey())
-
                                 .keyType(KeyType.HASH).build())
-
                         .projection(Projection.builder()
-
                                 .projectionType(ProjectionType.ALL).build())
-
                         .provisionedThroughput(ProvisionedThroughput.builder()
-
                                 .readCapacityUnits(config.getGsi().getReadCapacity())
-
                                 .writeCapacityUnits(config.getGsi().getWriteCapacity()).build())
-
                         .build())
-
                 .build();
 
-
-
         dynamoDbClient.updateTable(UpdateTableRequest.builder()
-
                 .tableName(config.getName())
-
                 .globalSecondaryIndexUpdates(gsiUpdate)
-
                 .build());
-
     }
-
 }
+```
 
 
+### Step 6: Automate Execution with [Spring](https://spring.io/projects/spring-boot)
 
-Step 6: Automating Execution
-
-
-
-Use Spring’s ApplicationRunner to automatically execute the table and GSI creation when the application starts:
+Use Spring’s [ApplicationRunner](https://docs.spring.io/spring-boot/api/java/org/springframework/boot/ApplicationRunner.html) to automatically execute the table and GSI creation when the application starts. ApplicationRunner is an interface that allows you to execute code after the Spring application context has been initialized and before the application starts processing requests. It's useful for performing setup tasks, data loading, or executing logic at application startup.
 
 
-
+```java
 import org.springframework.boot.ApplicationRunner;
-
 import org.springframework.context.annotation.Bean;
-
 import org.springframework.context.annotation.Configuration;
 
 
-
 @Configuration
-
 public class DynamoDbInitializer {
-
     private final DynamoDbTableService tableService;
-
     private final DynamoDbGsiService gsiService;
 
 
-
     public DynamoDbInitializer(DynamoDbTableService tableService, DynamoDbGsiService gsiService) {
-
         this.tableService = tableService;
-
         this.gsiService = gsiService;
-
     }
-
-
 
     @Bean
-
     public ApplicationRunner runner() {
-
         return args -> {
-
             tableService.createTable();
-
             gsiService.createGsi();
-
         };
-
     }
-
 }
+```
+
+
+## Hot Partitions
+### What Are Hot Partitions?
+
+
+DynamoDB distributes data across partitions based on the hash value of the partition key. Hot partitions can occur when a disproportionate amount of requests target the same partition in DynamoDB, leading to performance bottlenecks. When items are inserted or queried, DynamoDB uses the partition key to determine which partition stores the item. If certain partition key values are accessed more frequently, the partition becomes "hot". A hot partition is one that has been overloaded with more requests than it can handle, leading to:
+
+- [Throttling](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/TroubleshootingThrottling-common-issues.html) - DynamoDB rejects requests that exceed a partitions Read Capacity Units (RCU) or Write Capacity Units (WCU) (tracks how much of a table's capacity is being consumed), resulting in ProvisionedThroughputExceededException.
+  
+  >See [Error Handling in DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Programming.Errors.html)
+  >See [Read consistency in DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html)
+- Increased Latency - Requests that may not have been throttled could experience varying response times as some requests wait longer in a queue
+- Wasted Capacity - Some partitions in the table might be underutilized while others are overloaded
 
 
 
-Visual: Complete Workflow
-
-
-
-+--------------------+         +------------------------+
-
-| DynamoDbTableConfig|         | DynamoDbGsiConfig     |
-
-| (Dynamic Config)   |         | (Dynamic Config)      |
-
-+--------------------+         +------------------------+
-
-         |                             |
-
-         v                             v
-
-+--------------------+         +------------------------+
-
-| DynamoDbTableService|       | DynamoDbGsiService     |
-
-| (Table Creation)    |       | (GSI Creation)         |
-
-+--------------------+         +------------------------+
-
-         \                             /
-
-          \                           /
-
-           v                         v
-
-        +-------------------------------+
-
-        | DynamoDB Table & GSI Created  |
-
-        | (Fully Automated Setup)       |
-
-        +-------------------------------+
-
-
-
-Hot Partitions: What You Need to Know
-
-
-
-What Are Hot Partitions?
-
-
-
-Hot partitions occur when a large number of requests target the same partition in DynamoDB, leading to performance bottlenecks.
-
-
-
-Visual: Hot Partition Example
-
-
-
-Partition Key Request Count
-
-user123 10 requests/sec
-
-user456 5000 requests/sec
-
-
-
-Wrapping Up
-
-
+## Wrapping Up
 
 In this tutorial, we:
 
 1. Set up a DynamoDB table and GSI manually in the AWS Console.
-
-2. Automated the process using Java, Dagger, and Spring.
-
-3. Discussed hot partitions and strategies to prevent them.
-
-
-
-This approach ensures flexibility, scalability, and clean code for managing DynamoDB resources. Would you like to explore advanced topics like monitoring or error handling? Let me know!
+1. Automated the process using Java, Dagger, and Spring.
+1. Discussed hot partitions and strategies to prevent them.
+  
+This approach ensures flexibility, scalability, and clean code for managing DynamoDB resources.
