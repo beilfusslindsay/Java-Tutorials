@@ -1,9 +1,9 @@
 # Adding a Global Secondary Index (GSI) to [DynamoDB](https://aws.amazon.com/dynamodb/?nc2=h_ql_prod_db_ddb) Using [Java](https://dev.java/) and [Dagger](https://dagger.io/)
 
-This tutorial will guide you through adding a Global Secondary Index (GSI) to a DynamoDB table using Java and Dagger for dependency injection. We will automate the creation of a table and GSI without using static methods, hardcoded variables, or a traditional main method. We will also cover how to achieve the same setup manually using the AWS Management Console for a visual understanding of the process. Finally, we will discuss hot partitions, their implications on performance, and how to manage them effectively.
+This tutorial walks you through adding a Global Secondary Index (GSI) to a DynamoDB table using Java and Dagger for dependency injection. It will guide you through a programmatic way of creating tables, adding GSI's, and will also cover how to achieve the same setup manually using the AWS Management Console. Finally, we will touch on hot partitions, their implications on performance, and how to manage them effectively.
 <br>
 
-By the end of this guide, you will have a scalable and clean implementation for managing DynamoDB GSIs programmatically.
+By the end of this guide, you will have a scalable implementation for managing DynamoDB GSIs programmatically.
 
 
 ## Why Use a Global Secondary Index?
@@ -15,7 +15,7 @@ A [GSI](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.htm
 - You need to query users based on their email
 
 <br>
-A GSI can be created with email as the partition key, enabling efficient lookups by email without scanning the entire table.
+A GSI can be created with email as the partition key, enabling efficient lookups by email without scanning the entire table. The GSI can contain all of the data from the primary table, or just a selection of data. The example below shows a GSI that contains all of the attributes from the primary table, organized by a different primary key.
 <br>
 
 ### Table vs GSI
@@ -42,7 +42,7 @@ A GSI can be created with email as the partition key, enabling efficient lookups
 
 
 ## Step 1: Creating a Table and GSI in the AWS Console
-To understand the structure, let’s manually create a table and GSI in the AWS Management Console. In the DynamoDB console, the workflow will look like:
+To understand the structure, we can manually create a table and GSI in the AWS Management Console. In the DynamoDB console, the workflow will look like:
 
 ```AWS Console > DynamoDB > Tables > Create Table > Add GSI```  
 
@@ -78,7 +78,7 @@ To understand the structure, let’s manually create a table and GSI in the AWS 
 
 ## Step 2: Automating Table and GSI Creation
 
-Now we can automate the setup using Java and Dagger.
+Now we can automate the setup using Java and Dagger instead of relying on the AWS Manangement Console. This allows for our code to be reused and provides scalable, repeatable, and automated workflows.
 
 ### Dynamic Configuration
 
@@ -102,8 +102,9 @@ dynamodb:
 
 ### DynamoDB Client Module
 
-Use a Dagger module to provide the DynamoDB client. This ensures that a singleton [DynamoDbClient](https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/dynamodb/DynamoDbClient.html) is available for injection throughout the application. Creating a new DynamoDB client for each request in your application is generally not recommended. 
+Use a Dagger module to provide the DynamoDB client. This ensures that a singleton [DynamoDbClient](https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/dynamodb/DynamoDbClient.html) is available for injection throughout the application. Creating a new DynamoDB client for each request in your application is generally not recommended.
 
+>Dependency injection boils down to providing an object with the objects it needs the objects (dependencies) instead of having an object construct them itself. It's a super useful technique for testing, since it allows for mocking dependencies.
 
 ```java
 import dagger.Module;
@@ -277,5 +278,3 @@ In this tutorial, we:
 1. Set up a DynamoDB table and GSI manually in the AWS Console.
 1. Automated the process using Java, Dagger, and Spring.
 1. Discussed hot partitions and strategies to prevent them.
-  
-This approach ensures flexibility, scalability, and clean code for managing DynamoDB resources.
