@@ -1,4 +1,4 @@
-# Adding a Global Secondary Index (GSI) to [DynamoDB](https://aws.amazon.com/dynamodb/?nc2=h_ql_prod_db_ddb) Using [Java](https://dev.java/) and [Dagger](https://dagger.io/)
+# Adding a Global Secondary Index (GSI) to [DynamoDB](https://aws.amazon.com/dynamodb/?nc2=h_ql_prod_db_ddb) using [Java](https://dev.java/) and [Dagger](https://dagger.io/)
 
 This tutorial walks you through adding a Global Secondary Index (GSI) to a DynamoDB table using Java and Dagger for dependency injection. It will guide you through a programmatic way of creating tables, adding GSI's, and will also cover how to achieve the same setup manually using the AWS Management Console. Finally, we will touch on hot partitions, their implications on performance, and how to manage them effectively.
 <br>
